@@ -19,12 +19,18 @@ namespace CShop.DAL.Repositories
         }
         public async Task<Product> GetByIdAsync(Guid id)
         {
-            return await _context.Products.FindAsync(id);
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Seller)
+                .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
-            return await _context.Products.AsQueryable().ToListAsync();
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Seller)
+                .ToListAsync();
         }
 
         public async Task InsertAsync(Product product)
@@ -35,7 +41,6 @@ namespace CShop.DAL.Repositories
 
         public async Task UpdateAsync(Product product)
         {
-            //_context.Entry(product).State = EntityState.Modified;
             var local = _context.Products.Local.FirstOrDefault(p => p.Id == product.Id);
             if (local != null)
             {
@@ -47,7 +52,7 @@ namespace CShop.DAL.Repositories
 
         public async Task DeleteAsync(Guid id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
             if (product == null)
             {
                 throw new NullReferenceException($"Product with {product.Id} id doesn't exists");
