@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CShop.Common.Entities;
 using CShop.DAL.Context;
@@ -34,10 +35,11 @@ namespace CShop.DAL.Repositories
 
         public async Task UpdateAsync(Product product)
         {
-            var productToModify = await _context.Products.FindAsync(product.Id);
-            if (productToModify == null)
+            //_context.Entry(product).State = EntityState.Modified;
+            var local = _context.Products.Local.FirstOrDefault(p => p.Id == product.Id);
+            if (local != null)
             {
-                throw new NullReferenceException($"Product with {product.Id} id doesn't exists");
+                _context.Entry(local).State = EntityState.Detached;
             }
             _context.Entry(product).State = EntityState.Modified;
             await _context.SaveChangesAsync();
